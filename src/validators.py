@@ -8,6 +8,28 @@ from src.exceptions import Forbidden
 from src.services.user_services import validate_admin
 
 
+class CommodityData(BaseModel):
+    """Validate good"""
+
+    name: str | None = None
+    description: str | None = None
+    price: int | None = None
+
+    @validator("name")
+    @classmethod
+    def length_name(cls, value: str) -> str:
+        if len(value) > 256:
+            raise ValueError("name must me maximum 256 characters")
+        return value
+
+    @validator("description")
+    @classmethod
+    def length_descr(cls, value: str) -> str:
+        if len(value) > 500:
+            raise ValueError("description must be maximum 500  characters")
+        return value
+
+
 class UserData(BaseModel):
     """Validate user data during registeration"""
 
@@ -17,14 +39,14 @@ class UserData(BaseModel):
     @validator("username")
     @classmethod
     def length_name(cls, value: str) -> str:
-        if 8 < len(value) > 50:
+        if len(value) > 50 or len(value) < 8:
             raise ValueError("name must me in range from 8 to 50")
         return value
 
     @validator("password")
     @classmethod
     def length_pass(cls, value: str) -> str:
-        if 8 < len(value) > 36:
+        if len(value) > 36 or len(value) < 8:
             raise ValueError("password must me in range from 8 to 36")
         return value
 

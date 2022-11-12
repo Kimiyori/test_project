@@ -24,7 +24,7 @@ async def test_account_replenishment(app, dao_session, get_token, create_account
         "amount": 100,
     }
     _, response = await app.asgi_client.post(
-        "/payment/webhook", headers=headers, content=json.dumps(content)
+        "/transactions/payment/webhook", headers=headers, content=json.dumps(content)
     )
     assert response.status_code == 200
     assert response.json == {

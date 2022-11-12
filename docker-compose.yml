@@ -22,6 +22,22 @@ services:
     image: redis:alpine
     ports:
       - 6379:6379
+  test:
+    build: .
+    command: poetry run pytest
+    working_dir: /sanic
+    profiles: ["test_profile"]
+    volumes:
+      - .:/sanic
+    depends_on:
+      - db
+  lint:
+    build: .
+    command: bash -c "mypy src ; pylint src ; flake8"
+    working_dir: /sanic
+    profiles: ["test_profile"]
+    volumes:
+      - .:/sanic
 volumes:
   postgres_data:
 

@@ -2,13 +2,14 @@
 name = "test-project"
 version = "0.1.0"
 description = "test project for dimatech"
-authors = ["'Kimiyori' <'maksimkalin@mail.ru'>"]
+authors = ['Kimiyori']
 readme = "README.md"
 packages = [{include = "test_project"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 sanic = "^22.9.1"
+sanic-ext = "^22.9.1"
 environs = "^9.5.0"
 alembic = "^1.8.1"
 asyncpg = "^0.27.0"

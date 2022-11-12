@@ -3,10 +3,10 @@ import uuid
 from pydantic import ValidationError
 from dependency_injector.wiring import Provide, inject, Closing
 from redis.asyncio.client import Redis
+from sqlalchemy.engine.row import Row
 from src.containers import Container
 from src.db.data_acess_layer.user import UserDAO
-from src.db.models import UserTable
-from src.exceptions import InvalidUsage, NotFoundInstance
+from src.exceptions import InvalidUsage
 from src.validators import UserData
 
 
@@ -48,11 +48,9 @@ async def approve_user(
     link: uuid.UUID,
     user_session: UserDAO = Closing[Provide[Container.user_session]],
     redis_session: Redis[bytes] = Closing[Provide[Container.redis_session]],
-) -> UserTable:
+) -> Row | None:
     user_id = await redis_session.get(str(link.hex))
-    await redis_session.delete(str(link.hex))
     user = await user_session.conf_new_user(id=int(user_id))  # type: ignore
-    if user is None:
-        raise NotFoundInstance
     await user_session.commit()
+    await redis_session.delete(str(link.hex))
     return user

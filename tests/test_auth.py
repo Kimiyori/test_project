@@ -1,7 +1,6 @@
 import json
 from unittest.mock import patch
 from src.db.data_acess_layer.user import UserDAO
-
 from .conftest import *
 import pytest
 
@@ -14,7 +13,7 @@ async def test_registration_handler(
 ):
     params = {"username": "testtest", "password": "testtest"}
     _, response = await app.asgi_client.post(
-        "/registration", content=json.dumps(params)
+        "/auth/registration", content=json.dumps(params)
     )
     mock_redis.assert_called()
     assert response.status == 201
@@ -23,7 +22,7 @@ async def test_registration_handler(
 
 @pytest.mark.usefixtures("dao_session", "override_container")
 async def test_registration_handler_without_data(app):
-    _, response = await app.asgi_client.post("/registration")
+    _, response = await app.asgi_client.post("/auth/registration")
     assert response.status == 400
     assert response.json == {
         "description": "Bad Request",
@@ -36,7 +35,7 @@ async def test_registration_handler_without_data(app):
 async def test_registration_handler_invalid_data(app):
     params = {"username": "test" * 30, "password": "test"}
     _, response = await app.asgi_client.post(
-        "/registration", content=json.dumps(params)
+        "/auth/registration", content=json.dumps(params)
     )
     assert response.status == 400
     assert response.json == {
@@ -50,16 +49,18 @@ async def test_registration_handler_invalid_data(app):
 @patch("redis.asyncio.from_url", return_value=FakeRedis())
 async def test_approve_registration(mock_redis, app, dao_session):
     session = UserDAO(dao_session)
-    params = {"username": "test", "password": "test"}
+    params = {"username": "test"*3, "password": "test"*3}
     _, response = await app.asgi_client.post(
-        "/registration", content=json.dumps(params)
+        "/auth/registration", content=json.dumps(params)
     )
     assert response.status == 201
     user = await session.get(id=1)
     status = session.check_status(user)
     assert not status
     link = "/".join(response.json["link"].split("/")[1:])
-    _, response = await app.asgi_client.post(link)
+    print(link)
+    _, response = await app.asgi_client.get(link)
+    user = await session.get(id=1)
     status = session.check_status(user)
     assert status
     assert response.status == 200

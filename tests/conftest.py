@@ -171,6 +171,7 @@ async def get_token(mock, app, create_user, dao_session):
         )
         return response.json["access_token"]
 
+
 @pytest_asyncio.fixture
 @patch("redis.asyncio.from_url", return_value=FakeRedis())
 async def get_admin_token(mock, app, create_admin, dao_session):

@@ -2,6 +2,7 @@ from .conftest import *
 import pytest
 from src.db.models import UserStatus
 
+
 @pytest.mark.parametrize("balance", [123])
 @pytest.mark.usefixtures("dao_session", "override_container")
 async def test_user_accounts(app, get_token, create_account):
@@ -23,6 +24,7 @@ async def test_user_transactions(app, get_token, create_transactions):
             {"amount": 13, "id": create_transactions[1]},
         ]
     }
+
 
 @pytest.mark.parametrize("balance", [123])
 @pytest.mark.usefixtures("dao_session", "override_container")

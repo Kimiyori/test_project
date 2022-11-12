@@ -1,5 +1,5 @@
 from typing import Any
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.engine.row import Row
 from src.db.data_acess_layer.abc import AbstractDAO
 from src.db.models import Account, UserStatus, UserTable
@@ -36,13 +36,16 @@ class UserDAO(AbstractDAO):
         lst = result.all()
         return lst
 
-    async def conf_new_user(self, **kwargs: int | str) -> UserTable | None:
-        user = await self.get(**kwargs)
-        if user:
-            user.status = UserStatus.ACTIVE
-            return user
-        else:
-            return None
+    async def conf_new_user(self, id: int) -> Row | None:
+        query = (
+            update(self.model)
+            .where(self.model.id == id)
+            .values(status=UserStatus.ACTIVE)
+            .returning(self.model.username, self.model.password)
+        )
+        res = await self.session.execute(query)
+        fetch = res.first()
+        return fetch
 
     def check_status(self, user: UserTable) -> bool:
         return user.status == UserStatus.ACTIVE

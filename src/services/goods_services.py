@@ -3,6 +3,7 @@ from src.containers import Container
 from src.db.data_acess_layer.account import AccountDAO
 from src.db.data_acess_layer.goods import GoodsDAO
 from src.exceptions import NotFoundInstance, PaymentError
+from src.validators import CommodityData
 
 
 @inject
@@ -43,3 +44,34 @@ async def handle_sale(
     assert good.price is not None
     await account_session.subtract_from_balance(account_id, good.price)
     await account_session.commit()
+
+
+@inject
+async def create_good_instance(
+    good: CommodityData,
+    goods_session: GoodsDAO = Closing[Provide[Container.goods_session]],
+) -> int:
+    created = goods_session.create(
+        name=good.name, description=good.description, price=good.price
+    )
+    goods_session.add(created)
+    await goods_session.commit()
+    created_id: int = created.id
+    return created_id
+
+
+@inject
+async def update_good_instance(
+    good: CommodityData,
+    good_id: int,
+    goods_session: GoodsDAO = Closing[Provide[Container.goods_session]],
+) -> None:
+    await goods_session.update(good_id, **good.dict(exclude_none=True))
+
+
+@inject
+async def delete_good_instance(
+    good_id: int,
+    goods_session: GoodsDAO = Closing[Provide[Container.goods_session]],
+) -> None:
+    await goods_session.delete(good_id)
