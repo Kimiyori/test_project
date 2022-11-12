@@ -1,0 +1,28 @@
+services:
+  web:
+    build: .
+    command: uvicorn src.main:main  --reload --port 8000
+    working_dir: /sanic
+    volumes:
+      - .:/sanic
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    restart: always
+  db:
+    image: postgres:14
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+volumes:
+  postgres_data:
+
+ 
