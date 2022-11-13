@@ -6,3 +6,8 @@ Test API project with Sanic framework
 
 - [ ] Make tests more reaadable and beter structured
 - [ ] Add docstrings
+
+# How deploy
+```
+docker-compose up --build
+```
