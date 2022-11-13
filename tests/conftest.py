@@ -15,8 +15,7 @@ from src.db.data_acess_layer.user import UserDAO
 from src.db.models import UserStatus, UserType
 from src.utilities.auth import init_auth
 from src.utilities.create_app import create_app
-import src.endpoints as blueprints
-
+from src.main import blueprints
 
 @pytest_asyncio.fixture
 async def test_engine():

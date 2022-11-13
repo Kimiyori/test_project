@@ -50,7 +50,7 @@ async def approve_user(
 ) -> dict[str, int | str] | None:
     user_id_b = await redis_session.get(str(link))
     user_id: int = int(user_id_b)  # type: ignore
-    await user_session.conf_new_user(id=user_id)
+    await user_session.conf_new_user(user_id)
     await user_session.commit()
     await redis_session.delete(str(link))
     return {"user_id": user_id}

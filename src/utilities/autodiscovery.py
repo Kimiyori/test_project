@@ -3,13 +3,13 @@ from importlib import import_module, util
 from inspect import getmembers
 from pathlib import Path
 from types import ModuleType
-from typing import Union
+from typing import Sequence
 from sanic.blueprints import Blueprint
 from sanic import Sanic
 
 
 def autodiscover(
-    app: Sanic, *module_names: Union[str, ModuleType], recursive: bool = False
+    app: Sanic, *module_names: Sequence[str], recursive: bool = False
 ) -> None:
     mod = app.__module__
     blueprints = set()
@@ -24,9 +24,9 @@ def autodiscover(
 
     for module in module_names:
         if isinstance(module, str):
-            module = import_module(module, mod)
-            _imported.add(module.__file__)
-        _find_bps(module)
+            module = import_module(module, mod)  # type: ignore
+            _imported.add(module.__file__)  # type: ignore
+        _find_bps(module)  # type: ignore
 
         if recursive:
             base = Path(module.__file__).parent  # type: ignore
@@ -40,6 +40,5 @@ def autodiscover(
                     _imported.add(path)
                     spec.loader.exec_module(specmod)  # type: ignore
                     _find_bps(specmod)
-
     for blueprint in blueprints:
         app.blueprint(blueprint)
