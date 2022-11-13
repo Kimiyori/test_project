@@ -1,5 +1,3 @@
-import asyncio
-from contextlib import asynccontextmanager
 import json
 from unittest.mock import patch
 import sqlalchemy
@@ -12,12 +10,12 @@ from src.containers import Container
 from src.db.base import Base
 from sqlalchemy import text
 from src.db.data_acess_layer.account import AccountDAO
-from src.db.data_acess_layer.goods import GoodsDAO
 from src.db.data_acess_layer.transactions import TransactionDAO
 from src.db.data_acess_layer.user import UserDAO
 from src.db.models import UserStatus, UserType
-
-from src.main import create_app, init_auth
+from src.utilities.auth import init_auth
+from src.utilities.create_app import create_app
+import src.endpoints as blueprints
 
 
 @pytest_asyncio.fixture
@@ -91,7 +89,7 @@ async def drop_db(engine) -> None:
 
 @pytest.fixture
 def app():
-    app = create_app()
+    app = create_app(blueprints)
     init_auth(app)
     app.ctx.container = Container()
     yield app
@@ -118,12 +116,21 @@ class FakeRedis:
         pass
 
 
+@pytest.fixture(scope="session", autouse=True)
+def params_user():
+    pytest.params = {"username": "test_just_user", "password": "test_pass_fur_user"}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def params_admin():
+    pytest.admin_params = {"username": "test_admin", "password": "test_admin"}
+
+
 @pytest_asyncio.fixture
 async def create_user(dao_session):
     user_session = UserDAO(dao_session)
-    params = {"username": "test", "password": "test"}
     status = UserStatus.ACTIVE.name
-    user = user_session.create(status=status, **params)
+    user = user_session.create(status=status, **pytest.params)
     user_session.add(user)
     await user_session.commit()
     return user.id
@@ -132,10 +139,9 @@ async def create_user(dao_session):
 @pytest_asyncio.fixture
 async def create_admin(dao_session):
     user_session = UserDAO(dao_session)
-    params = {"username": "test_admin", "password": "test_admin"}
     status = UserStatus.ACTIVE.name
     type = UserType.ADMIN.name
-    user = user_session.create(status=status, type=type, **params)
+    user = user_session.create(status=status, type=type, **pytest.admin_params)
     user_session.add(user)
     await user_session.commit()
     return user.id
@@ -164,10 +170,9 @@ async def create_transactions(create_user, dao_session, create_account):
 @pytest_asyncio.fixture
 @patch("redis.asyncio.from_url", return_value=FakeRedis())
 async def get_token(mock, app, create_user, dao_session):
-    params = {"username": "test", "password": "test"}
     with app.ctx.container.session.override(dao_session):
         request, response = await app.asgi_client.post(
-            "/auth", content=json.dumps(params)
+            "/auth", content=json.dumps(pytest.params)
         )
         return response.json["access_token"]
 
@@ -175,10 +180,9 @@ async def get_token(mock, app, create_user, dao_session):
 @pytest_asyncio.fixture
 @patch("redis.asyncio.from_url", return_value=FakeRedis())
 async def get_admin_token(mock, app, create_admin, dao_session):
-    params = {"username": "test_admin", "password": "test_admin"}
     with app.ctx.container.session.override(dao_session):
         request, response = await app.asgi_client.post(
-            "/auth", content=json.dumps(params)
+            "/auth", content=json.dumps(pytest.admin_params)
         )
         return response.json["access_token"]
 

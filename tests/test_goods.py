@@ -56,11 +56,19 @@ async def test_sale_good(app, get_token, create_account):
 @pytest.mark.usefixtures("dao_session", "override_container")
 async def test_create_good_invalid_data(app, get_admin_token):
     headers = {"Authorization": f"Bearer {get_admin_token}"}
-    content = {"name": "test", "description": "test"}
+    content = {"name": "test"}
     _, response = await app.asgi_client.post(
-        "/admin/goods/create", headers=headers, content=json.dumps(content)
+        "/admin/goods/", headers=headers, content=json.dumps(content)
     )
     assert response.status_code == 400
+    assert response.json == {
+        "description": "Bad Request",
+        "message": (
+            "2 validation errors for CommodityCreate\ndescription\n  field "
+            "required (type=value_error.missing)\nprice\n  field required (type=value_error.missing)"
+        ),
+        "status": 400,
+    }
 
 
 @pytest.mark.usefixtures("dao_session", "override_container")
@@ -68,50 +76,45 @@ async def test_create_good(app, get_admin_token):
     headers = {"Authorization": f"Bearer {get_admin_token}"}
     content = {"name": "test", "description": "test", "price": 123}
     _, response = await app.asgi_client.post(
-        "/admin/goods/create", headers=headers, content=json.dumps(content)
+        "/admin/goods/", headers=headers, content=json.dumps(content)
     )
     assert response.status_code == 201
     assert response.json == {"message": "good successfuly created", "good_id": 1}
 
+
 @pytest.mark.usefixtures("override_container", "create_goods")
-async def test_update_good_not_valid_data(app, dao_session, get_admin_token):
+async def test_update_good(app, dao_session, get_admin_token):
+    headers = {"Authorization": f"Bearer {get_admin_token}"}
+    content = {"name": "test"}
+    goods_session = GoodsDAO(dao_session)
+    good = await goods_session.get(id=1)
+    assert good.name != "test"
+    _, response = await app.asgi_client.patch(
+        "/admin/goods/1", headers=headers, content=json.dumps(content)
+    )
+    assert response.status_code == 204
+    assert response.json == ""
+    good = await goods_session.get(id=1)
+    assert good.name == "test"
+
+
+@pytest.mark.usefixtures("dao_session", "override_container", "create_goods")
+async def test_update_good_fail(app, get_admin_token):
     headers = {"Authorization": f"Bearer {get_admin_token}"}
     content = {}
-    _, response = await app.asgi_client.put(
-        "/admin/goods/update/1", headers=headers, content=json.dumps(content)
+    _, response = await app.asgi_client.patch(
+        "/admin/goods/1", headers=headers, content=json.dumps(content)
     )
     assert response.status_code == 400
+    assert response.json == {
+        "description": "Bad Request",
+        "message": (
+            "1 validation error for CommodityUpdate\n__root__\n  must "
+            "provide at least one field that needs to be changed (type=value_error)"
+        ),
+        "status": 400,
+    }
 
-
-@pytest.mark.usefixtures("override_container", "create_goods")
-async def test_update_good(app, dao_session, get_admin_token):
-    headers = {"Authorization": f"Bearer {get_admin_token}"}
-    content = {"name": "test"}
-    goods_session = GoodsDAO(dao_session)
-    good = await goods_session.get(id=1)
-    assert good.name != "test"
-    _, response = await app.asgi_client.put(
-        "/admin/goods/update/1", headers=headers, content=json.dumps(content)
-    )
-    assert response.status_code == 204
-    assert response.json == ''
-    good = await goods_session.get(id=1)
-    assert good.name == "test"
-
-@pytest.mark.usefixtures("override_container", "create_goods")
-async def test_update_good(app, dao_session, get_admin_token):
-    headers = {"Authorization": f"Bearer {get_admin_token}"}
-    content = {"name": "test"}
-    goods_session = GoodsDAO(dao_session)
-    good = await goods_session.get(id=1)
-    assert good.name != "test"
-    _, response = await app.asgi_client.put(
-        "/admin/goods/update/1", headers=headers, content=json.dumps(content)
-    )
-    assert response.status_code == 204
-    assert response.json == ''
-    good = await goods_session.get(id=1)
-    assert good.name == "test"
 
 @pytest.mark.usefixtures("override_container", "create_goods")
 async def test_delete_good(app, dao_session, get_admin_token):
@@ -119,18 +122,15 @@ async def test_delete_good(app, dao_session, get_admin_token):
     goods_session = GoodsDAO(dao_session)
     good = await goods_session.get(id=1)
     assert good
-    _, response = await app.asgi_client.delete(
-        "/admin/goods/delete/1", headers=headers
-    )
+    _, response = await app.asgi_client.delete("/admin/goods/1", headers=headers)
     assert response.status_code == 204
-    assert response.json == ''
+    assert response.json == ""
     good = await goods_session.get(id=1)
     assert not good
 
-@pytest.mark.usefixtures("dao_session","override_container", "create_goods")
+
+@pytest.mark.usefixtures("dao_session", "override_container", "create_goods")
 async def test_delete_good_fail(app, get_admin_token):
     headers = {"Authorization": f"Bearer {get_admin_token}"}
-    _, response = await app.asgi_client.delete(
-        "/admin/goods/delete/111", headers=headers
-    )
+    _, response = await app.asgi_client.delete("/admin/goods/111", headers=headers)
     assert response.status_code == 204

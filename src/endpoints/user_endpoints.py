@@ -10,7 +10,7 @@ from src.services.user_services import (
     get_users,
     set_user_status,
 )
-from src.validators import validate_admin_decorator
+from src.decorators import validate_admin_decorator
 
 user_bp = Blueprint("users", url_prefix="/user")
 

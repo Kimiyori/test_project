@@ -3,7 +3,7 @@ from src.containers import Container
 from src.db.data_acess_layer.account import AccountDAO
 from src.db.data_acess_layer.goods import GoodsDAO
 from src.exceptions import NotFoundInstance, PaymentError
-from src.validators import CommodityData
+from src.shemas.goods_shemas import CommodityCreate, CommodityUpdate
 
 
 @inject
@@ -48,7 +48,7 @@ async def handle_sale(
 
 @inject
 async def create_good_instance(
-    good: CommodityData,
+    good: CommodityCreate,
     goods_session: GoodsDAO = Closing[Provide[Container.goods_session]],
 ) -> int:
     created = goods_session.create(
@@ -62,8 +62,8 @@ async def create_good_instance(
 
 @inject
 async def update_good_instance(
-    good: CommodityData,
     good_id: int,
+    good: CommodityUpdate,
     goods_session: GoodsDAO = Closing[Provide[Container.goods_session]],
 ) -> None:
     await goods_session.update(good_id, **good.dict(exclude_none=True))

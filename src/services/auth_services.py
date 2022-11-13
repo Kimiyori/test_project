@@ -7,7 +7,7 @@ from sqlalchemy.engine.row import Row
 from src.containers import Container
 from src.db.data_acess_layer.user import UserDAO
 from src.exceptions import InvalidUsage
-from src.validators import UserData
+from src.shemas.user_shemas import UserData
 
 
 def validate_user_data(data: dict[str, int]) -> UserData:

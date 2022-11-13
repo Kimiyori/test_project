@@ -4,7 +4,7 @@ env = environs.Env()
 env.read_env(".env")
 
 TEST_DATABASE_NAME = "test_db"
-SECRET = "something_very_secret"
+SECRET = env("SECRET_KEY")
 
 
 def get_postgres_uri(database_name: bool = True, test: bool = False) -> str:

@@ -4,7 +4,7 @@ from src.containers import Container
 from src.db.data_acess_layer.account import AccountDAO
 from src.db.data_acess_layer.transactions import TransactionDAO
 from src.exceptions import InvalidUsage
-from src.validators import WebHook
+from src.shemas.transactions_shemas import WebHook
 
 
 def validate_webhook_data(data: dict[str, str | int]) -> WebHook:

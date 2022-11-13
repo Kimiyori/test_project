@@ -44,14 +44,14 @@ async def test_get_users(app, get_admin_token, create_account):
         "users": [
             {
                 "user_id": 1,
-                "username": "test_admin",
+                "username": pytest.admin_params["username"],
                 "user_type": "ADMIN",
                 "user_status": "ACTIVE",
                 "accounts": [],
             },
             {
                 "user_id": 2,
-                "username": "test",
+                "username": pytest.params["username"],
                 "user_type": "REGULAR_USER",
                 "user_status": "ACTIVE",
                 "accounts": [
