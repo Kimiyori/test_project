@@ -3,7 +3,6 @@ import uuid
 from pydantic import ValidationError
 from dependency_injector.wiring import Provide, inject, Closing
 from redis.asyncio.client import Redis
-from sqlalchemy.engine.row import Row
 from src.containers import Container
 from src.db.data_acess_layer.user import UserDAO
 from src.exceptions import InvalidUsage
@@ -45,12 +44,13 @@ async def create_registration_link(
 
 @inject
 async def approve_user(
-    link: uuid.UUID,
+    link: str,
     user_session: UserDAO = Closing[Provide[Container.user_session]],
     redis_session: Redis[bytes] = Closing[Provide[Container.redis_session]],
-) -> Row | None:
-    user_id = await redis_session.get(str(link.hex))
-    user = await user_session.conf_new_user(id=int(user_id))  # type: ignore
+) -> dict[str, int | str] | None:
+    user_id_b = await redis_session.get(str(link))
+    user_id: int = int(user_id_b)  # type: ignore
+    await user_session.conf_new_user(id=user_id)
     await user_session.commit()
-    await redis_session.delete(str(link.hex))
-    return user
+    await redis_session.delete(str(link))
+    return {"user_id": user_id}

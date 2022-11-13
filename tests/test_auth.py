@@ -12,7 +12,7 @@ async def test_registration_handler(
     app,
 ):
     _, response = await app.asgi_client.post(
-        "/auth/registration", content=json.dumps(pytest.params)
+        "/auth/register", content=json.dumps(pytest.params)
     )
     mock_redis.assert_called()
     assert response.status == 201
@@ -21,7 +21,7 @@ async def test_registration_handler(
 
 @pytest.mark.usefixtures("dao_session", "override_container")
 async def test_registration_handler_without_data(app):
-    _, response = await app.asgi_client.post("/auth/registration")
+    _, response = await app.asgi_client.post("/auth/register")
     assert response.status == 400
     assert response.json == {
         "description": "Bad Request",
@@ -34,7 +34,7 @@ async def test_registration_handler_without_data(app):
 async def test_registration_handler_invalid_data(app):
     params = {"username": "test" * 3, "password": "test"}
     _, response = await app.asgi_client.post(
-        "/auth/registration", content=json.dumps(params)
+        "/auth/register", content=json.dumps(params)
     )
     assert response.status == 400
     assert response.json == {
@@ -49,20 +49,20 @@ async def test_registration_handler_invalid_data(app):
 async def test_approve_registration(mock_redis, app, dao_session):
     session = UserDAO(dao_session)
     _, response = await app.asgi_client.post(
-        "/auth/registration", content=json.dumps(pytest.params)
+        "/auth/register", content=json.dumps(pytest.params)
     )
     assert response.status == 201
     user = await session.get(id=1)
     status = session.check_status(user)
     assert not status
     link = "/".join(response.json["link"].split("/")[1:])
-    _, response = await app.asgi_client.get(link)
+    _, response = await app.asgi_client.put(link)
+    assert response.status == 200
+    assert response.json["access_token"]
+    assert response.json["refresh_token"]
     user = await session.get(id=1)
     status = session.check_status(user)
     assert status
-    assert response.status == 200
-    assert response.json == pytest.params
-
 
 @pytest.mark.usefixtures("create_user", "dao_session", "override_container")
 @patch("redis.asyncio.from_url", return_value=FakeRedis())

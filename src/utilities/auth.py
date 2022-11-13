@@ -1,6 +1,7 @@
 from sanic_jwt import Initialize
 from sanic import Sanic
 from src.config import SECRET
+from src.endpoints.auth_endpoints import register_views
 from src.auth.authentificate import (
     authenticate,
     retrieve_refresh_token,
@@ -19,4 +20,5 @@ def init_auth(app: Sanic) -> None:
         debug=True,
         refresh_token_enabled=True,
         secret=SECRET,
+        class_views=register_views,
     )

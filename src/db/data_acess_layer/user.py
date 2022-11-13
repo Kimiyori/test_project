@@ -36,16 +36,13 @@ class UserDAO(AbstractDAO):
         lst = result.all()
         return lst
 
-    async def conf_new_user(self, id: int) -> Row | None:
+    async def conf_new_user(self, user_id: int) -> None:
         query = (
             update(self.model)
-            .where(self.model.id == id)
+            .where(self.model.id == user_id)
             .values(status=UserStatus.ACTIVE)
-            .returning(self.model.username, self.model.password)
         )
-        res = await self.session.execute(query)
-        fetch = res.first()
-        return fetch
+        await self.session.execute(query)
 
     def check_status(self, user: UserTable) -> bool:
         return user.status == UserStatus.ACTIVE
