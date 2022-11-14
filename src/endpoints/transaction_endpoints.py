@@ -12,7 +12,7 @@ transaction_bp = Blueprint("transaction", url_prefix="/transactions")
 @transaction_bp.route("/payment/webhook", methods=["POST"])
 @openapi.definition(
     body={"application/json": WebHook.schema()},
-    summary="Demosit money on the account",
+    summary="Deposit money on the account",
 )
 @protected()
 async def account_replenishment(request: Request) -> HTTPResponse:

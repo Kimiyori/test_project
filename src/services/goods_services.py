@@ -10,6 +10,22 @@ from src.shemas.goods_shemas import CommodityCreate, CommodityUpdate
 async def get_goods(
     goods_session: GoodsDAO = Closing[Provide[Container.goods_session]],
 ) -> dict[str, list[dict[str, str | int | None]]]:
+    """service for getting all goods from db
+
+    Returns:
+        dict[str, list[dict[str, str | int | None]]]: dict with following shema:
+            {
+        "goods": [
+                    {
+                        "id": good.id,
+                        "name": good.name,
+                        "description": good.description,
+                        "price": good.price,
+                    },
+                    ...
+                ]
+            }
+    """
     goods = await goods_session.get_all()
     dct = {
         "goods": [
@@ -33,6 +49,16 @@ async def handle_sale(
     goods_session: GoodsDAO = Closing[Provide[Container.goods_session]],
     account_session: AccountDAO = Closing[Provide[Container.account_session]],
 ) -> None:
+    """commit sale and subtract money from user account
+    Args:
+        account_id (str)
+        user_id (int)
+        good_id (int)
+
+    Raises:
+        NotFoundInstance:throw if not found good or account
+        PaymentError: if on account not enough money
+    """
     good = await goods_session.get(id=good_id)
     if good is None:
         raise NotFoundInstance
@@ -51,6 +77,14 @@ async def create_good_instance(
     good: CommodityCreate,
     goods_session: GoodsDAO = Closing[Provide[Container.goods_session]],
 ) -> int:
+    """service for creating good
+
+    Args:
+        good (CommodityCreate):instance sheme
+
+    Returns:
+        int: id good that was created
+    """
     created = goods_session.create(
         name=good.name, description=good.description, price=good.price
     )
@@ -66,6 +100,12 @@ async def update_good_instance(
     good: CommodityUpdate,
     goods_session: GoodsDAO = Closing[Provide[Container.goods_session]],
 ) -> None:
+    """service for update good
+
+    Args:
+        good_id (int): good id
+        good (CommodityUpdate): indo that need to be updated
+    """
     await goods_session.update(good_id, **good.dict(exclude_none=True))
 
 
@@ -74,4 +114,9 @@ async def delete_good_instance(
     good_id: int,
     goods_session: GoodsDAO = Closing[Provide[Container.goods_session]],
 ) -> None:
+    """service for delete good
+
+    Args:
+        good_id (int): good id
+    """
     await goods_session.delete(good_id)

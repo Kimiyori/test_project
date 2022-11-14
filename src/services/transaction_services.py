@@ -8,6 +8,16 @@ from src.shemas.transactions_shemas import WebHook
 
 
 def validate_webhook_data(data: dict[str, str | int]) -> WebHook:
+    """service for validate passed data for creating transaction
+
+    Args:
+        data (dict[str, str  |  int]): dict with necessary data
+
+    Raises:
+        InvalidUsage: raises if shema fails to validate
+    Returns:
+        WebHook: webhook instance
+    """
     try:
         validated_data = WebHook(**data)
     except ValidationError as error:
@@ -25,6 +35,14 @@ async def add_amount(
     ],
     account_session: AccountDAO = Closing[Provide[Container.account_session]],
 ) -> int | None:
+    """service for creating transaction and add given amount to user account
+
+    Args:
+        data (WebHook)
+
+    Returns:
+        int | None: new balance
+    """
     transaction = transaction_session.create(
         id=data.transaction_id, account_id=data.account_id, amount=data.amount
     )

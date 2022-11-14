@@ -12,6 +12,14 @@ async def get_user(
     user_id: int,
     user_session: UserDAO = Closing[Provide[Container.user_session]],
 ) -> UserTable | None:
+    """service for getting user
+
+    Args:
+        user_id (int)
+
+    Returns:
+        UserTable | None: user instance of exist, else None
+    """
     user = await user_session.get(id=user_id)
     return user
 
@@ -21,6 +29,23 @@ async def get_user_accounts(
     user_id: int,
     account_session: AccountDAO = Closing[Provide[Container.account_session]],
 ) -> dict[str, list[dict[str, str | int | None]]]:
+    """service for getting all accounts for given user
+
+    Args:
+        user_id (int)
+
+
+    Returns:
+        dict[str, list[dict[str, str | int | None]]]: return dict
+        with following shema:
+                            {
+                            "accounts": [
+                                {
+                                    "id": account.id,
+                                    "balance": account.balance,
+                                },
+                            }
+    """
     accounts = await account_session.get_all_user_accounts(user_id=user_id)
     dct = {
         "accounts": [
@@ -42,6 +67,23 @@ async def get_user_transactions(
     ],
     account_session: AccountDAO = Closing[Provide[Container.account_session]],
 ) -> dict[str, list[dict[str, str | int | None]]]:
+    """service for getting all transaction for given user
+
+    Args:
+        user_id (int)
+
+    Returns:
+        dict[str, list[dict[str, str | int | None]]]: return the following dict:
+                {
+                "transactions":
+                    [
+                        {
+                            "id": str(transaction.id),
+                            "amount": transaction.amount,
+                        }
+                    ]
+                }
+    """
     accounts = await account_session.get_all_user_accounts(user_id=user_id)
     transactions = []
     for account in accounts:
@@ -66,6 +108,17 @@ async def get_user_transactions(
 async def validate_admin(
     user_id: int, user_session: UserDAO = Closing[Provide[Container.user_session]]
 ) -> bool:
+    """service for validate admin status for given user
+
+    Args:
+        user_id (int)
+
+    Raises:
+        NotFoundInstance: if not found user instance
+
+    Returns:
+        bool: True if user is admin else False
+    """
     user = await user_session.get(id=user_id)
     if not user:
         raise NotFoundInstance
@@ -77,6 +130,26 @@ async def validate_admin(
 async def get_users(
     user_session: UserDAO = Closing[Provide[Container.user_session]],
 ) -> dict[str, list[dict[str, int | str | list[dict[str, str | int]]]]]:
+    """service for getting all user with their accounts
+
+    Returns:
+        dict[str, list[dict[str, int | str | list[dict[str, str | int]]]]]:
+        return dict:
+            {
+            "users":
+                [
+                    {
+                        "user_id": user.id,
+                        "username": user.username,
+                        "user_type": user.type.name if user.type else None,
+                        "user_status": user.status.name if user.status else None,
+                        "accounts": [
+                            {"account_id": account.id, "account_balance": account.balance},
+                                    ],
+                    }
+                ]
+            }
+    """
     users = await user_session.get_all_with_accounts()
     dct = {
         "users": [
@@ -103,6 +176,15 @@ async def set_user_status(
     user: UserTable,
     user_session: UserDAO = Closing[Provide[Container.user_session]],
 ) -> str:
+    """service foe change user status
+
+    Args:
+        status (str):status that needs to be set for given user
+        user (UserTable)
+
+    Returns:
+        str: message
+    """
     if status == "disable":
         new_status = UserStatus.INACTIVE
     elif status == "enable":

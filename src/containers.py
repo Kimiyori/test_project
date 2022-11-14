@@ -9,6 +9,8 @@ from src.db.session import session_factory
 
 
 class RedisResource(resources.Resource):  # type:ignore
+    """Resourse for creating context manager for redis client"""
+
     def init(self, *args: Any, **kwargs: Any):  # type:ignore
         rds = redis.from_url("redis://redis:6379")
         return rds
@@ -20,6 +22,8 @@ class RedisResource(resources.Resource):  # type:ignore
 
 
 class Container(containers.DeclarativeContainer):
+    """Container for creating sqlalchemy session"""
+
     wiring_config = containers.WiringConfiguration(
         packages=["src.services", "src.auth"]
     )

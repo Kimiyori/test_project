@@ -58,7 +58,7 @@ async def test_create_good_invalid_data(app, get_admin_token):
     headers = {"Authorization": f"Bearer {get_admin_token}"}
     content = {"name": "test"}
     _, response = await app.asgi_client.post(
-        "/admin/", headers=headers, content=json.dumps(content)
+        "/admin/goods", headers=headers, content=json.dumps(content)
     )
     assert response.status_code == 400
     assert response.json == {
@@ -76,7 +76,7 @@ async def test_create_good(app, get_admin_token):
     headers = {"Authorization": f"Bearer {get_admin_token}"}
     content = {"name": "test", "description": "test", "price": 123}
     _, response = await app.asgi_client.post(
-        "/admin", headers=headers, content=json.dumps(content)
+        "/admin/goods", headers=headers, content=json.dumps(content)
     )
     assert response.status_code == 201
     assert response.json == {"message": "good successfuly created", "good_id": 1}
@@ -90,7 +90,7 @@ async def test_update_good(app, dao_session, get_admin_token):
     good = await goods_session.get(id=1)
     assert good.name != "test"
     _, response = await app.asgi_client.patch(
-        "/admin/1", headers=headers, content=json.dumps(content)
+        "/admin/goods/1", headers=headers, content=json.dumps(content)
     )
     assert response.status_code == 204
     assert response.json == ""
@@ -103,7 +103,7 @@ async def test_update_good_fail(app, get_admin_token):
     headers = {"Authorization": f"Bearer {get_admin_token}"}
     content = {}
     _, response = await app.asgi_client.patch(
-        "/admin/1", headers=headers, content=json.dumps(content)
+        "/admin/goods/1", headers=headers, content=json.dumps(content)
     )
     assert response.status_code == 400
     assert response.json == {
@@ -122,7 +122,7 @@ async def test_delete_good(app, dao_session, get_admin_token):
     goods_session = GoodsDAO(dao_session)
     good = await goods_session.get(id=1)
     assert good
-    _, response = await app.asgi_client.delete("/admin/1", headers=headers)
+    _, response = await app.asgi_client.delete("/admin/goods/1", headers=headers)
     assert response.status_code == 204
     assert response.json == ""
     good = await goods_session.get(id=1)
@@ -132,5 +132,5 @@ async def test_delete_good(app, dao_session, get_admin_token):
 @pytest.mark.usefixtures("dao_session", "override_container", "create_goods")
 async def test_delete_good_fail(app, get_admin_token):
     headers = {"Authorization": f"Bearer {get_admin_token}"}
-    _, response = await app.asgi_client.delete("/admin/111", headers=headers)
+    _, response = await app.asgi_client.delete("/admin/goods/111", headers=headers)
     assert response.status_code == 204

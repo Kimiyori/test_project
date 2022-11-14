@@ -1,5 +1,5 @@
 from sanic_jwt.decorators import protected, inject_user
-from sanic_ext import validate
+from sanic_ext import validate, openapi
 from sanic import json
 from sanic.request import Request
 from sanic.response import HTTPResponse
@@ -13,7 +13,11 @@ from src.decorators import validate_admin_decorator, validate_exceptions
 from src.endpoints.admin import admin_bp as admin_goods_bp
 
 
-@admin_goods_bp.route("/", methods=["POST"])
+@admin_goods_bp.route("/goods", methods=["POST"])
+@openapi.definition(
+    body={"application/json": CommodityCreate.schema()},
+    summary="Create good",
+)
 @inject_user()
 @protected()
 @validate_admin_decorator()
@@ -26,7 +30,11 @@ async def create_good(
     return json({"message": "good successfuly created", "good_id": good_id}, status=201)
 
 
-@admin_goods_bp.route("/<good_id:int>", methods=["PATCH"])
+@admin_goods_bp.route("/goods/<good_id:int>", methods=["PATCH"])
+@openapi.definition(
+    body={"application/json": CommodityUpdate.schema()},
+    summary="Update good data",
+)
 @inject_user()
 @protected()
 @validate_admin_decorator()
@@ -39,7 +47,7 @@ async def update_good(
     return json("", status=204)
 
 
-@admin_goods_bp.route("/<good_id:int>", methods=["DELETE"])
+@admin_goods_bp.route("/goods/<good_id:int>", methods=["DELETE"])
 @inject_user()
 @protected()
 @validate_admin_decorator()
