@@ -30,7 +30,7 @@ class UserTable(Base):
     __tablename__ = "user_table"
     id = Column(Integer, primary_key=True)
     username = Column(String(50), nullable=False, unique=True)
-    password = Column(String(36), nullable=False)
+    password = Column(String(128), nullable=False)
     type = Column(
         Enum(UserType),
         default=UserType.REGULAR_USER.name,

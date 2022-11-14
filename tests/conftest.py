@@ -13,9 +13,11 @@ from src.db.data_acess_layer.account import AccountDAO
 from src.db.data_acess_layer.transactions import TransactionDAO
 from src.db.data_acess_layer.user import UserDAO
 from src.db.models import UserStatus, UserType
+from src.services.auth_services import generate_password_hash
 from src.utilities.auth import init_auth
 from src.utilities.create_app import create_app
 from src.main import blueprints
+
 
 @pytest_asyncio.fixture
 async def test_engine():
@@ -117,19 +119,29 @@ class FakeRedis:
 
 @pytest.fixture(scope="session", autouse=True)
 def params_user():
-    pytest.params = {"username": "test_just_user", "password": "test_pass_fur_user"}
+    pytest.params = {
+        "username": "test_just_user",
+        "password": "test_pass_fur_user",
+    }
 
 
 @pytest.fixture(scope="session", autouse=True)
 def params_admin():
-    pytest.admin_params = {"username": "test_admin", "password": "test_admin"}
+    pytest.admin_params = {
+        "username": "test_admin",
+        "password": "test_admin",
+    }
 
 
 @pytest_asyncio.fixture
 async def create_user(dao_session):
     user_session = UserDAO(dao_session)
     status = UserStatus.ACTIVE.name
-    user = user_session.create(status=status, **pytest.params)
+    user = user_session.create(
+        status=status,
+        username=pytest.params["username"],
+        password=generate_password_hash(pytest.params["password"]),
+    )
     user_session.add(user)
     await user_session.commit()
     return user.id
@@ -140,7 +152,12 @@ async def create_admin(dao_session):
     user_session = UserDAO(dao_session)
     status = UserStatus.ACTIVE.name
     type = UserType.ADMIN.name
-    user = user_session.create(status=status, type=type, **pytest.admin_params)
+    user = user_session.create(
+        status=status,
+        type=type,
+        username=pytest.admin_params["username"],
+        password=generate_password_hash(pytest.admin_params["password"]),
+    )
     user_session.add(user)
     await user_session.commit()
     return user.id

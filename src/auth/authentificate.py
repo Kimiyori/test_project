@@ -6,6 +6,7 @@ from dependency_injector.wiring import Provide, inject, Closing
 from sanic import Request
 from src.containers import Container
 from src.db.data_acess_layer.user import UserDAO
+from src.services.auth_services import check_password_hash
 
 
 # Authentication
@@ -15,7 +16,7 @@ async def authenticate(
     user_session: UserDAO = Closing[Provide[Container.user_session]],
     *args: Any,
     **kwargs: Any,
-) -> dict[str, str | int | None]:
+) -> dict[str, int | None]:
     if request.json is None:
         raise exceptions.AuthenticationFailed("missing payload")
 
@@ -31,12 +32,11 @@ async def authenticate(
         raise exceptions.AuthenticationFailed("User not found.")
     if not user_session.check_status(user):
         raise exceptions.AuthenticationFailed("User don't confrim account")
-    if password != user.password:
+    assert isinstance(user.password, str)
+    if not check_password_hash(password, user.password):
         raise exceptions.AuthenticationFailed("Wrong password")
     data = {
         "user_id": user.id,
-        "username": user.username,
-        "password": user.password,
     }
     return data
 
