@@ -8,7 +8,7 @@ from src.services.user_services import (
     get_user_transactions,
 )
 
-user_bp = Blueprint("users", url_prefix="/user")
+user_bp = Blueprint("users", url_prefix="/users")
 
 
 @user_bp.route("/accounts")

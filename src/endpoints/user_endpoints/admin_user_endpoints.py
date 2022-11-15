@@ -14,7 +14,7 @@ from src.endpoints.admin import admin_bp as admin_user_bp
 from src.shemas.user_shemas import ChangeUserStatus
 
 
-@admin_user_bp.route("/user_status", methods=["PUT"])
+@admin_user_bp.route("/users/status", methods=["PATCH"])
 @openapi.definition(
     body={"application/json": ChangeUserStatus.schema()},
     summary="Change user status",
